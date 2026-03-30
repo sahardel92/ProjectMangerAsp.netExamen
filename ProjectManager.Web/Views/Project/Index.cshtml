@@ -1,0 +1,14 @@
+﻿@{
+    ViewData["Title"] = "Projets";
+}
+
+<h2>Bienvenue, @ViewBag.Fullname</h2>
+
+@if (ViewBag.IsProjectManager)
+{
+    <p>Vous êtes chef de projet !</p>
+}
+else
+{
+    <p>Vous êtes employé.</p>
+}
