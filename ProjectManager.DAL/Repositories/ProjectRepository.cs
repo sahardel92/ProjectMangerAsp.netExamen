@@ -63,8 +63,9 @@ namespace ProjectManager.DAL.Repositories
         {
             using SqlConnection conn = _db.GetConnection();
             conn.Open();
-            using SqlCommand cmd = new SqlCommand("SP_Project_Get_ById", conn);
-            cmd.CommandType = System.Data.CommandType.StoredProcedure;
+            using SqlCommand cmd = new SqlCommand(
+                "SELECT ProjectId, Name, Description, Creationdate, ProjectManagerId " +
+                "FROM Project WHERE ProjectId = @projectId", conn);
             cmd.Parameters.AddWithValue("@projectId", projectId);
             using SqlDataReader reader = cmd.ExecuteReader();
             if (reader.Read())
@@ -74,7 +75,7 @@ namespace ProjectManager.DAL.Repositories
                     ProjectId = (Guid)reader["ProjectId"],
                     Name = reader["Name"].ToString(),
                     Description = reader["Description"].ToString(),
-                    Creationdate = (DateTime)reader["CreationDate"],
+                    Creationdate = (DateTime)reader["Creationdate"],
                     ProjectManagerId = (Guid)reader["ProjectManagerId"]
                 };
             }
