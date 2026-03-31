@@ -42,5 +42,62 @@ namespace ProjectManager.Web.Controllers
             ProjectDetailViewModel model = _projectService.GetProjectDetails(id, isManager, employeeId);
             return View(model);
         }
+
+        [HttpGet]
+        public IActionResult Create()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public IActionResult Create(string name, string description)
+        {
+            string? employeeIdStr = HttpContext.Session.GetString("EmployeeId");
+            if (employeeIdStr == null) return RedirectToAction("Login", "Account");
+
+            Guid managerId = Guid.Parse(employeeIdStr);
+            Guid projectId = _projectService.CreateProject(managerId, name, description);
+            return RedirectToAction("Details", new { id = projectId });
+        }
+
+        [HttpGet]
+        public IActionResult EditDescription(Guid id)
+        {
+            string? employeeIdStr = HttpContext.Session.GetString("EmployeeId");
+            if (employeeIdStr == null) return RedirectToAction("Login", "Account");
+
+            Guid employeeId = Guid.Parse(employeeIdStr);
+            ProjectDetailViewModel model = _projectService.GetProjectDetails(id, true, employeeId);
+            return View(model);
+        }
+
+        [HttpPost]
+        public IActionResult EditDescription(Guid id, string description)
+        {
+            _projectService.UpdateDescription(id, description);
+            return RedirectToAction("Details", new { id });
+        }
+
+        [HttpGet]
+        public IActionResult AddMember(Guid id)
+        {
+            List<Employee> freeEmployees = _projectService.GetFreeEmployees();
+            ViewBag.ProjectId = id;
+            return View(freeEmployees);
+        }
+
+        [HttpPost]
+        public IActionResult AddMember(Guid projectId, Guid employeeId)
+        {
+            _projectService.AddMember(employeeId, projectId);
+            return RedirectToAction("Details", new { id = projectId });
+        }
+
+        [HttpPost]
+        public IActionResult RemoveMember(Guid projectId, Guid employeeId)
+        {
+            _projectService.RemoveMember(employeeId, projectId);
+            return RedirectToAction("Details", new { id = projectId });
+        }
     }
 }

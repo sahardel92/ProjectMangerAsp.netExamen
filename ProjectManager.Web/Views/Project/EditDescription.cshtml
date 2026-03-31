@@ -1,0 +1,18 @@
+﻿@model ProjectManager.DAL.Models.ProjectDetailViewModel
+
+@{
+    ViewData["Title"] = "Modifier la description";
+}
+
+<div class="border p-4">
+    <h4>Modifier la description — @Model.Project?.Name</h4>
+    <form method="post">
+        <div class="mb-3">
+            <label class="form-label">Description</label>
+            <textarea name="description" class="form-control" rows="5" required>@Model.Project?.Description</textarea>
+        </div>
+        <input type="hidden" name="id" value="@Model.Project?.ProjectId" />
+        <button type="submit" class="btn btn-primary">Enregistrer</button>
+        <a asp-action="Details" asp-route-id="@Model.Project?.ProjectId" class="btn btn-secondary ms-2">Annuler</a>
+    </form>
+</div>

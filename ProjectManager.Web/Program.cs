@@ -14,6 +14,8 @@ builder.Services.AddScoped<UserService>();
 
 builder.Services.AddScoped<ProjectRepository>();
 builder.Services.AddScoped<ProjectService>();
+builder.Services.AddScoped<PostRepository>();
+builder.Services.AddScoped<PostService>();
 
 // Injection de dépendance - DAL
 string connectionString = builder.Configuration.GetConnectionString("DefaultConnection")!;

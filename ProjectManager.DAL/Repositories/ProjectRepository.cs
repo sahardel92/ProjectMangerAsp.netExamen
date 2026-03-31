@@ -86,9 +86,24 @@ namespace ProjectManager.DAL.Repositories
             List<Employee> members = new List<Employee>();
             using SqlConnection conn = _db.GetConnection();
             conn.Open();
-            using SqlCommand cmd = new SqlCommand("SP_Employee_Get_FromProjectId", conn);
-            cmd.CommandType = System.Data.CommandType.StoredProcedure;
+
+            string query =
+                "SELECT e.EmployeeId, e.Firstname, e.Lastname, e.IsProjectManager, u.Email " +
+                "FROM Employee e " +
+                "JOIN [User] u ON u.EmployeeId = e.EmployeeId " +
+                "JOIN TakePart tp ON tp.EmployeeId = e.EmployeeId " +
+                "WHERE tp.ProjectId = @projectId AND tp.EndDate IS NULL " +
+                "UNION " +
+                "SELECT e.EmployeeId, e.Firstname, e.Lastname, e.IsProjectManager, u.Email " +
+                "FROM Employee e " +
+                "JOIN [User] u ON u.EmployeeId = e.EmployeeId " +
+                "JOIN Project p ON p.ProjectManagerId = e.EmployeeId " +
+                "WHERE p.ProjectId = @projectId2";
+
+            using SqlCommand cmd = new SqlCommand(query, conn);
             cmd.Parameters.AddWithValue("@projectId", projectId);
+            cmd.Parameters.AddWithValue("@projectId2", projectId);
+
             using SqlDataReader reader = cmd.ExecuteReader();
             while (reader.Read())
             {
@@ -131,6 +146,82 @@ namespace ProjectManager.DAL.Repositories
                 });
             }
             return posts;
+        }
+
+        public Guid CreateProject(Guid managerId, string name, string description)
+        {
+            using SqlConnection conn = _db.GetConnection();
+            conn.Open();
+            using SqlCommand cmd = new SqlCommand("SP_Project_Insert", conn);
+            cmd.CommandType = System.Data.CommandType.StoredProcedure;
+            cmd.Parameters.AddWithValue("@projectManagerId", managerId);
+            cmd.Parameters.AddWithValue("@name", name);
+            cmd.Parameters.AddWithValue("@description", description);
+            object? result = cmd.ExecuteScalar();
+            return (Guid)result!;
+        }
+
+        public void UpdateDescription(Guid projectId, string description)
+        {
+            using SqlConnection conn = _db.GetConnection();
+            conn.Open();
+            using SqlCommand cmd = new SqlCommand("SP_Project_Update", conn);
+            cmd.CommandType = System.Data.CommandType.StoredProcedure;
+            cmd.Parameters.AddWithValue("@projectId", projectId);
+            cmd.Parameters.AddWithValue("@description", description);
+            cmd.ExecuteNonQuery();
+        }
+
+        public void AddMember(Guid employeeId, Guid projectId)
+        {
+            using SqlConnection conn = _db.GetConnection();
+            conn.Open();
+
+            using SqlCommand check = new SqlCommand(
+                "SELECT COUNT(*) FROM TakePart WHERE EmployeeId = @employeeId AND ProjectId = @projectId AND EndDate IS NULL", conn);
+            check.Parameters.AddWithValue("@employeeId", employeeId);
+            check.Parameters.AddWithValue("@projectId", projectId);
+            int count = (int)check.ExecuteScalar();
+            if (count > 0) return;
+
+            using SqlCommand cmd = new SqlCommand("SP_TakePart_Insert", conn);
+            cmd.CommandType = System.Data.CommandType.StoredProcedure;
+            cmd.Parameters.AddWithValue("@employeeId", employeeId);
+            cmd.Parameters.AddWithValue("@projectId", projectId);
+            cmd.Parameters.AddWithValue("@startDate", DateTime.Now);
+            cmd.ExecuteNonQuery();
+        }
+
+        public void RemoveMember(Guid employeeId, Guid projectId)
+        {
+            using SqlConnection conn = _db.GetConnection();
+            conn.Open();
+            using SqlCommand cmd = new SqlCommand("SP_TakePart_SetEnd", conn);
+            cmd.CommandType = System.Data.CommandType.StoredProcedure;
+            cmd.Parameters.AddWithValue("@employeeId", employeeId);
+            cmd.Parameters.AddWithValue("@projectId", projectId);
+            cmd.Parameters.AddWithValue("@endDate", DateTime.Now);
+            cmd.ExecuteNonQuery();
+        }
+
+        public List<Employee> GetFreeEmployees()
+        {
+            List<Employee> employees = new List<Employee>();
+            using SqlConnection conn = _db.GetConnection();
+            conn.Open();
+            using SqlCommand cmd = new SqlCommand("SP_Employee_GetFree", conn);
+            cmd.CommandType = System.Data.CommandType.StoredProcedure;
+            using SqlDataReader reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                employees.Add(new Employee
+                {
+                    EmployeeId = (Guid)reader["EmployeeId"],
+                    Firstname = reader["Firstname"].ToString(),
+                    Lastname = reader["Lastname"].ToString()
+                });
+            }
+            return employees;
         }
     }
 }

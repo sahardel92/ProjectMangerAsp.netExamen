@@ -35,7 +35,7 @@
                 <ul class="list-unstyled">
                     @foreach (var member in Model.Members)
                     {
-                        <li>
+                        <li class="mb-1">
                             • <a href="mailto:@member.Email">@member.Firstname @member.Lastname</a>
                             @if (member.IsProjectManager)
                             {
@@ -43,10 +43,11 @@
                             }
                             @if (isManager && !member.IsProjectManager)
                             {
-                                <a asp-action="RemoveMember"
-                                   asp-route-projectId="@Model.Project?.ProjectId"
-                                   asp-route-employeeId="@member.EmployeeId"
-                                   class="text-danger ms-1">✕</a>
+                                <form method="post" asp-action="RemoveMember" style="display:inline;">
+                                    <input type="hidden" name="projectId" value="@Model.Project?.ProjectId" />
+                                    <input type="hidden" name="employeeId" value="@member.EmployeeId" />
+                                    <button type="submit" class="btn btn-link text-danger p-0 ms-1">✕</button>
+                                </form>
                             }
                         </li>
                     }
