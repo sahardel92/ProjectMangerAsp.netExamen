@@ -1,14 +1,36 @@
-﻿@{
+﻿@model List<ProjectManager.DAL.Models.Project>
+
+@{
     ViewData["Title"] = "Projets";
 }
 
-<h2>Bienvenue, @ViewBag.Fullname</h2>
+<h4 class="mb-4">Liste de vos projets</h4>
 
-@if (ViewBag.IsProjectManager)
-{
-    <p>Vous êtes chef de projet !</p>
-}
-else
-{
-    <p>Vous êtes employé.</p>
-}
+<div class="border p-3">
+    @if (Model == null || Model.Count == 0)
+    {
+        <p>Aucun projet trouvé.</p>
+    }
+    else
+    {
+        @foreach (var project in Model)
+        {
+            <div class="card mb-3 p-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5>
+                            <a asp-controller="Project" asp-action="Details" asp-route-id="@project.ProjectId">
+                                @project.Name
+                            </a>
+                        </h5>
+                        <p class="text-muted mb-0">@project.Description</p>
+                    </div>
+                    <div class="text-end">
+                        <a asp-controller="Project" asp-action="Details" asp-route-id="@project.ProjectId"
+                           class="btn btn-primary btn-sm">Accéder</a>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+</div>

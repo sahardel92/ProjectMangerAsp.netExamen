@@ -1,5 +1,4 @@
-﻿
-namespace ProjectManager.DAL.Models
+﻿namespace ProjectManager.DAL.Models
 {
     public class Employee
     {
@@ -8,7 +7,6 @@ namespace ProjectManager.DAL.Models
         public string? Lastname { get; set; }
         public DateTime Hiredate { get; set; }
         public bool IsProjectManager { get; set; }
-
-
+        public string? Email { get; set; }
     }
 }

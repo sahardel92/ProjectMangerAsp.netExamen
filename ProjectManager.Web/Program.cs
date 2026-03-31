@@ -12,6 +12,9 @@ builder.Services.AddSession();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<UserService>();
 
+builder.Services.AddScoped<ProjectRepository>();
+builder.Services.AddScoped<ProjectService>();
+
 // Injection de dépendance - DAL
 string connectionString = builder.Configuration.GetConnectionString("DefaultConnection")!;
 builder.Services.AddSingleton(new DatabaseConnection(connectionString));
