@@ -52,7 +52,7 @@ namespace ProjectManager.DAL.Repositories
                     ProjectId = (Guid)reader["ProjectId"],
                     Name = reader["Name"].ToString(),
                     Description = reader["Description"].ToString(),
-                    Creationdate = (DateTime)reader["CreationDate"],
+                    Creationdate = (DateTime)reader["Creationdate"],
                     ProjectManagerId = (Guid)reader["ProjectManagerId"]
                 });
             }
