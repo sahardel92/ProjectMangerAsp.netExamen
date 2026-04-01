@@ -178,19 +178,41 @@ namespace ProjectManager.DAL.Repositories
             using SqlConnection conn = _db.GetConnection();
             conn.Open();
 
+            // Vérifie si déjà membre actif (EndDate IS NULL)
             using SqlCommand check = new SqlCommand(
                 "SELECT COUNT(*) FROM TakePart WHERE EmployeeId = @employeeId AND ProjectId = @projectId AND EndDate IS NULL", conn);
             check.Parameters.AddWithValue("@employeeId", employeeId);
             check.Parameters.AddWithValue("@projectId", projectId);
             int count = (int)check.ExecuteScalar();
-            if (count > 0) return;
+            if (count > 0) return; // déjà membre actif, on ne fait rien
 
-            using SqlCommand cmd = new SqlCommand("SP_TakePart_Insert", conn);
-            cmd.CommandType = System.Data.CommandType.StoredProcedure;
-            cmd.Parameters.AddWithValue("@employeeId", employeeId);
-            cmd.Parameters.AddWithValue("@projectId", projectId);
-            cmd.Parameters.AddWithValue("@startDate", DateTime.Now);
-            cmd.ExecuteNonQuery();
+            // Vérifie si la personne a déjà été membre avant (EndDate renseignée)
+            using SqlCommand checkOld = new SqlCommand(
+                "SELECT COUNT(*) FROM TakePart WHERE EmployeeId = @employeeId AND ProjectId = @projectId AND EndDate IS NOT NULL", conn);
+            checkOld.Parameters.AddWithValue("@employeeId", employeeId);
+            checkOld.Parameters.AddWithValue("@projectId", projectId);
+            int countOld = (int)checkOld.ExecuteScalar();
+
+            if (countOld > 0)
+            {
+                // A déjà été membre → UPDATE pour le réactiver
+                using SqlCommand update = new SqlCommand(
+                    "UPDATE TakePart SET EndDate = NULL, StartDate = @startDate WHERE EmployeeId = @employeeId AND ProjectId = @projectId", conn);
+                update.Parameters.AddWithValue("@startDate", DateTime.Now);
+                update.Parameters.AddWithValue("@employeeId", employeeId);
+                update.Parameters.AddWithValue("@projectId", projectId);
+                update.ExecuteNonQuery();
+            }
+            else
+            {
+                // Nouveau membre → INSERT via SP
+                using SqlCommand cmd = new SqlCommand("SP_TakePart_Insert", conn);
+                cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@employeeId", employeeId);
+                cmd.Parameters.AddWithValue("@projectId", projectId);
+                cmd.Parameters.AddWithValue("@startDate", DateTime.Now);
+                cmd.ExecuteNonQuery();
+            }
         }
 
         public void RemoveMember(Guid employeeId, Guid projectId)
